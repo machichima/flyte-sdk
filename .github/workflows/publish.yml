@@ -4,7 +4,7 @@ on:
   release:
     types: [published]
   push:
-    branches: [revisit-protos-ci]
+    branches: [revisit-protos-ci, ci-test-rust-controller-fork]
   pull_request:
     paths:
       - ".github/workflows/publish.yml"
@@ -256,9 +256,9 @@ jobs:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io/flyteorg
-          username: "${{ secrets.FLYTE_BOT_USERNAME }}"
-          password: "${{ secrets.FLYTE_BOT_PAT }}"
+          registry: ghcr.io/machichima
+          username: machichima
+          password: ${{ secrets.MY_GHCR_PAT }}
       - name: Fetch the code
         uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
@@ -285,10 +285,16 @@ jobs:
           FLYTE_DOCKER_BUILDER_CACHE_TO: "type=gha,mode=max"
           _F_USE_RUST_CONTROLLER: "1"
         run: |
-          uv run python maint_tools/build_default_image.py --type flyte
+          uv run python maint_tools/build_default_image.py \
+            --type flyte \
+            --registry ghcr.io/machichima \
+            --name flyte-rs-test
       - name: Build and push the connector image
         env:
           FLYTE_DOCKER_BUILDER_CACHE_FROM: "type=gha"
           FLYTE_DOCKER_BUILDER_CACHE_TO: "type=gha,mode=max"
         run: |
-          uv run python maint_tools/build_default_image.py --type connector
+          uv run python maint_tools/build_default_image.py \
+            --type connector \
+            --registry ghcr.io/machichima \
+            --name flyte-connector-rs-test
